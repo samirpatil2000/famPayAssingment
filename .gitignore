@@ -1,0 +1,4 @@
+# Project exclude paths
+/env/
+youtube/migrations
+db.sqlite3

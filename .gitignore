@@ -2,3 +2,4 @@
 /env/
 youtube/migrations
 db.sqlite3
+youtube_api_test.py

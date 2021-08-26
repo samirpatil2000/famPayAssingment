@@ -1,6 +1,7 @@
 from django.db import models
 
 # Create your models here.
+from django.urls import reverse
 
 dummy_youtube_response = {
   "publishedAt": "2021-02-03T07:11:23Z",
@@ -46,3 +47,6 @@ class API(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('detail',kwargs={'id':self.id})

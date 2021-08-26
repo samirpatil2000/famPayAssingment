@@ -29,8 +29,9 @@ def index(request):
 
     which_query=[]
     if is_valid_params(search_query):
-        queryset=queryset.filter(Q(name__icontains=search_query)|Q(category__name__icontains=search_query)|
-                                 Q(description__icontains=search_query)).distinct()
+        # queryset=queryset.filter(Q(name__icontains=search_query)|Q(category__name__icontains=search_query)|
+        #                          Q(description__icontains=search_query)).distinct()
+        queryset=queryset.filter(description__icontains=search_query)
         which_query.append(search_query)
     if is_valid_params(category_id):
         category_=Category.objects.get(id=int(category_id))
@@ -106,7 +107,11 @@ def fetch(query="FamPay",max_results=2):
     # return redirect('index')
 
 
-
+def detail(request,id):
+    context = {
+        'object':API.objects.get(id=id)
+    }
+    return render(request,'youtube/detail.html',context)
 
 dummy_response={
   "kind": "youtube#searchListResponse",

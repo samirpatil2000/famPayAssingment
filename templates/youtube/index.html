@@ -20,7 +20,7 @@
                           <div class="card-body">
                             <h5 class="card-title">{{ object.name }}</h5>
                             <p class="card-text">{{ object.description|truncatewords:5 }}</p>
-                            <a href="#" class="btn btn-primary">GO</a>
+                            <a href="{{ object.get_absolute_url }}" class="btn btn-primary">GO</a>
                           </div>
                         </div>
                     </div>

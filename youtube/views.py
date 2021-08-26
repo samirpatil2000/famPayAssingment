@@ -9,13 +9,16 @@ from famPayAssingment.settings import DEVELOPER_KEY,YOUTUBE_API_SERVICE_NAME,YOU
 # Create your views here.
 from googleapiclient.discovery import build
 
-from .models import API
+from .models import API,Category
 
 def index(request):
     template_name='youtube/index.html'
-    fetch()
+    # fetch()
+    context={
+        'objects':API.objects.all(),
+    }
     return render(request,
-                  template_name)
+                  template_name,context)
 
 dummy_response={
   "kind": "youtube#searchListResponse",
@@ -112,6 +115,11 @@ def fetch():
         # print(json.dumps(response))
         # print(type(response),''.join(['*']*40))
         title=[]
+        try:
+            category=Category.objects.get(name=query)
+        except ObjectDoesNotExist:
+            category=Category.objects.create(name=query)
+
         for result in response.get('items',[]):
             if result['id']['kind'] == 'youtube#video':
                 title.append(result['snippet']['title'])
@@ -126,6 +134,7 @@ def fetch():
                         # date_published=result['snippet']['title'],
                         thumbnail_url=result['snippet']['thumbnails']['high']['url'],
                         channel_name=result['snippet']['channelTitle'],
+                        category=category,
                         videoId=videoId)
         print(title)
 

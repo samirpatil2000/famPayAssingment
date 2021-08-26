@@ -29,12 +29,17 @@ dummy_youtube_response = {
   "publishTime": "2021-02-03T07:11:23Z"
 }
 
+class Category(models.Model):
+    name = models.CharField(max_length=30,unique=True)
+    def __str__(self):
+        return self.name
 
 class API(models.Model):
     name = models.CharField(max_length=200,blank=True,null=True)
     description = models.TextField(blank=True,null=True)
     date_published = models.DateTimeField(blank=True,null=True)
     date_created = models.DateTimeField(auto_now=True,null=True,blank=True)
+    category = models.ForeignKey(Category,on_delete=models.SET_NULL,blank=True,null=True)
     thumbnail_url = models.URLField(blank=True)
     channel_name = models.CharField(max_length=50,blank=True,null=True)
     videoId = models.SlugField(unique=True,max_length=30)

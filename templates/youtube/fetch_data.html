@@ -1,0 +1,27 @@
+{% extends 'youtube/base.html' %}
+
+{% block title %}FAMPAY{% endblock %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <div class="container">
+    <h1 style="margin-top:10px;alignment: center">FETCH DATA FROM YOUTUBE</h1>
+        <form action="" class="inline-form mr-md-2 ml-auto">
+            <div class="input-group">
+              <input
+                required
+                type="text"
+                name="fetch_query"
+                placeholder="type your query .."
+                class="form-control mt-2"
+                action = ''/>
+              <div class="input-group-append">
+                <button type="submit" class="btn-success btn btn-sm mt-2">
+                  <i class="fa fa-search fa-lg"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+
+    </div>
+{% endblock %}

@@ -2,6 +2,7 @@ import json
 import os
 import sys
 
+from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.shortcuts import render, redirect
@@ -123,9 +124,17 @@ dummy_response={
   ]
 }
 
+def fetch_query(request):
 
-def fetch():
-    query,max_results="FamPay",2
+    query = request.GET.get('fetch_query')
+    if is_valid_params(query):
+        category=Category.objects.get_or_create(name=query)
+        fetch(category)
+        messages.success(request,f'data successfully fetch for keyword {query}')
+    return render(request,'youtube/fetch_data.html',context={})
+
+def fetch(query="FamPay",max_results=2):
+    # query,max_results="FamPay",2
     try:
         request_to_youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
                         developerKey=DEVELOPER_KEY)
@@ -159,9 +168,6 @@ def fetch():
                         category=category,
                         videoId=videoId)
         print(title)
-
-
-
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]

@@ -11,20 +11,15 @@
                 <button class="btn btn-info btn-block btn-sm" type="submit">
                   Filter
                 </button>
-{#                <div class="input-group-append">#}
-{#                    <button type="submit" class="btn-success btn btn-sm mt-2">#}
-{#                      <i class="fa fa-search fa-lg"></i>#}
-{#                    </button>#}
-{#                  </div>#}
         </form>
         <div class="row">
             {% for object in objects %}
-                    <div class="col-sm-3" style=" margin-left: 5px">
+                    <div class="col-sm-3" style=" margin-top: 10px;margin-left: 10px">
                         <div class="card" style="width: 18rem;">
                           <img src="{{ object.thumbnail_url }}" class="card-img-top" alt="...">
                           <div class="card-body">
                             <h5 class="card-title">{{ object.name }}</h5>
-                            <p class="card-text">{{ object.description }}</p>
+                            <p class="card-text">{{ object.description|truncatewords:5 }}</p>
                             <a href="#" class="btn btn-primary">GO</a>
                           </div>
                         </div>

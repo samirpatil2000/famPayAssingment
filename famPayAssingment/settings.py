@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'youtube',
+    'crispy_forms',
 ]
 
 MIDDLEWARE = [
@@ -119,6 +120,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
+
+CRISPY_TEMPLATE_PACK='bootstrap4'
+
 STATIC_URL = '/static/'
 
 # Default primary key field type
@@ -130,3 +134,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DEVELOPER_KEY = 'AIzaSyBmxkzqNdKRrJF6Wxx1sUyqbSa0YrcfluE'
 YOUTUBE_API_SERVICE_NAME = 'youtube'
 YOUTUBE_API_VERSION = 'v3'
+

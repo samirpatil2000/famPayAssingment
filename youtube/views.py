@@ -3,6 +3,7 @@ import os
 import sys
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from famPayAssingment.settings import DEVELOPER_KEY,YOUTUBE_API_SERVICE_NAME,YOUTUBE_API_VERSION
 
@@ -10,12 +11,33 @@ from famPayAssingment.settings import DEVELOPER_KEY,YOUTUBE_API_SERVICE_NAME,YOU
 from googleapiclient.discovery import build
 
 from .models import API,Category
+from .forms import FilterForm
+
+def is_valid_params(param):
+    return param!="" and param is not None
 
 def index(request):
     template_name='youtube/index.html'
     # fetch()
+
+    queryset=API.objects.all()
+
+    category_id = request.GET.get('category')
+    search_query = request.GET.get('name')
+
+    which_query=[]
+    if is_valid_params(search_query):
+        queryset=queryset.filter(Q(name__icontains=search_query)|
+                                 Q(description__icontains=search_query)).distinct()
+        which_query.append(search_query)
+    if is_valid_params(category_id):
+        category_=Category.objects.get(id=int(category_id))
+        queryset = queryset.filter(category=category_)
+        which_query.append(str(category_.name))
+
     context={
-        'objects':API.objects.all(),
+        'objects':queryset,
+        'filterForm':FilterForm,
     }
     return render(request,
                   template_name,context)

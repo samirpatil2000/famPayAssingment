@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import sys
@@ -28,12 +29,13 @@ def index(request):
 
     which_query=[]
     if is_valid_params(search_query):
-        queryset=queryset.filter(Q(name__icontains=search_query)|
+        queryset=queryset.filter(Q(name__icontains=search_query)|Q(category__name__icontains=search_query)|
                                  Q(description__icontains=search_query)).distinct()
         which_query.append(search_query)
     if is_valid_params(category_id):
         category_=Category.objects.get(id=int(category_id))
-        queryset = queryset.filter(category=category_)
+        print(category_)
+        queryset = queryset.filter(category__name=category_)
         which_query.append(str(category_.name))
 
     context={
@@ -42,6 +44,69 @@ def index(request):
     }
     return render(request,
                   template_name,context)
+
+def fetch_query(request):
+    query = request.GET.get('fetch_query')
+    if is_valid_params(query):
+        category=Category.objects.get_or_create(name=query)
+        fetch(category[0])
+        messages.success(request,f'data successfully fetch for keyword {query}')
+    return render(request,'youtube/fetch_data.html',context={})
+
+def fetch_videos():
+    categories = Category.objects.all()
+    for cat in categories:
+        fetch(query=cat.name)
+
+def fetch(query="FamPay",max_results=2):
+        query,max_results="FamPay",2
+
+    # try:
+        try:
+            request_to_youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
+                            developerKey=DEVELOPER_KEY)
+            response = request_to_youtube.search().list(
+                q=query,
+                part='id,snippet',
+                maxResults=max_results
+            ).execute()
+            print(response)
+        except Exception as e:
+            print(e,"THE expection")
+
+        title=[]
+        try:
+            category=Category.objects.get(name=query)
+        except ObjectDoesNotExist:
+            category=Category.objects.create(name=query)
+        response={'items':[]}
+        for result in response.get('items',[]):
+            if result['id']['kind'] == 'youtube#video':
+                title.append(result['snippet']['title'])
+                videoId=result['id']['videoId']
+                try:
+                    API.objects.get(videoId=videoId)
+                except ObjectDoesNotExist:
+                    date=result['snippet']["publishedAt"]
+                    API.objects.create(
+                        name=result['snippet']['title'],
+                        description=result['snippet']['description'],
+                        # date_published=result['snippet']['title'],
+                        thumbnail_url=result['snippet']['thumbnails']['high']['url'],
+                        channel_name=result['snippet']['channelTitle'],
+                        category=category,
+                        videoId=videoId)
+        print(title)
+
+    # except Exception as e:
+    #     exc_type, exc_obj, exc_tb = sys.exc_info()
+    #     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+    #     print(exc_type, fname, exc_tb.tb_lineno)
+
+    # return redirect('index')
+
+
+
 
 dummy_response={
   "kind": "youtube#searchListResponse",
@@ -123,54 +188,3 @@ dummy_response={
     }
   ]
 }
-
-def fetch_query(request):
-
-    query = request.GET.get('fetch_query')
-    if is_valid_params(query):
-        category=Category.objects.get_or_create(name=query)
-        fetch(category)
-        messages.success(request,f'data successfully fetch for keyword {query}')
-    return render(request,'youtube/fetch_data.html',context={})
-
-def fetch(query="FamPay",max_results=2):
-    # query,max_results="FamPay",2
-    try:
-        request_to_youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
-                        developerKey=DEVELOPER_KEY)
-        response = request_to_youtube.search().list(
-            q=query,
-            part='id,snippet',
-            maxResults=max_results
-        ).execute()
-        # print(json.dumps(response))
-        # print(type(response),''.join(['*']*40))
-        title=[]
-        try:
-            category=Category.objects.get(name=query)
-        except ObjectDoesNotExist:
-            category=Category.objects.create(name=query)
-
-        for result in response.get('items',[]):
-            if result['id']['kind'] == 'youtube#video':
-                title.append(result['snippet']['title'])
-                videoId=result['id']['videoId']
-                try:
-                    API.objects.get(videoId=videoId)
-                except ObjectDoesNotExist:
-                    date=result['snippet']["publishedAt"]
-                    API.objects.create(
-                        name=result['snippet']['title'],
-                        description=result['snippet']['description'],
-                        # date_published=result['snippet']['title'],
-                        thumbnail_url=result['snippet']['thumbnails']['high']['url'],
-                        channel_name=result['snippet']['channelTitle'],
-                        category=category,
-                        videoId=videoId)
-        print(title)
-    except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(exc_type, fname, exc_tb.tb_lineno)
-
-    # return redirect('index')

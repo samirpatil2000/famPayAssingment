@@ -1,17 +1,15 @@
-import asyncio
-import json
-import os
-import sys
+import os,sys,json,asyncio
 
-import googleapiclient
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.shortcuts import render, redirect
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+
 from famPayAssingment.settings import DEVELOPER_KEY,YOUTUBE_API_SERVICE_NAME,YOUTUBE_API_VERSION,API_KEYS
 
-# Create your views here.
 from googleapiclient.discovery import build
+import googleapiclient
 
 from .models import API,Category
 from .forms import FilterForm
@@ -22,11 +20,13 @@ def is_valid_params(param):
 def index(request):
     template_name='youtube/index.html'
     # fetch()
-
     queryset=API.objects.all()
 
     category_id = request.GET.get('category')
     search_query = request.GET.get('name')
+      # creating a paginator object
+    # getting the desired page number from url
+    page_number = request.GET.get('page')
 
     which_query=[]
     if is_valid_params(search_query):
@@ -40,14 +40,22 @@ def index(request):
             which_query.append(search_query)
     if is_valid_params(category_id):
         category_=Category.objects.get(id=int(category_id))
-        print(category_)
         queryset = queryset.filter(category__name=category_)
         which_query.append(str(category_.name))
 
     context={
-        'objects':queryset,
         'filterForm':FilterForm,
     }
+    page = Paginator(queryset, 6)
+    try:
+        page_obj = page.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = page.page(1)
+    except EmptyPage:
+        page_obj = page.page(page.num_pages)
+
+    context['page_obj']=page_obj
+
     return render(request,
                   template_name,context)
 
@@ -55,7 +63,7 @@ def fetch_query(request):
     query = request.GET.get('fetch_query')
     if is_valid_params(query):
         category=Category.objects.get_or_create(name=query)
-        fetch(category[0])
+        fetch(category[0],max_results=10)
         messages.success(request,f'data successfully fetch for keyword {query}')
     return render(request,'youtube/fetch_data.html',context={})
 
@@ -65,10 +73,10 @@ def fetch_videos():
         fetch(query=cat.name)
 
 def fetch(query="FamPay",max_results=2):
-    query,max_results="FamPay",2
-    retry=True
-    response=None
-    try:
+    # query,max_results="FamPay",2
+        retry=True
+        response=None
+    # try:
         for key in API_KEYS:
             try:
                 # import pdb;pdb.set_trace()
@@ -90,7 +98,6 @@ def fetch(query="FamPay",max_results=2):
                 category=Category.objects.get(name=query)
             except ObjectDoesNotExist:
                 category=Category.objects.create(name=query)
-            response={'items':[]}
             for result in response.get('items',[]):
                 if result['id']['kind'] == 'youtube#video':
                     title.append(result['snippet']['title'])
@@ -112,12 +119,11 @@ def fetch(query="FamPay",max_results=2):
             # messages.error(,"")
             raise
 
-    except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(exc_type, fname, exc_tb.tb_lineno)
+    # except Exception as e:
+    #     exc_type, exc_obj, exc_tb = sys.exc_info()
+    #     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+    #     print(exc_type, fname, exc_tb.tb_lineno)
 
-    # return redirect('index')
 
 
 def detail(request,id):

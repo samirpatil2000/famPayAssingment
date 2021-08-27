@@ -5,6 +5,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from datetime import datetime
+
 
 from famPayAssingment.settings import DEVELOPER_KEY,YOUTUBE_API_SERVICE_NAME,YOUTUBE_API_VERSION,API_KEYS
 
@@ -20,7 +22,7 @@ def is_valid_params(param):
 def index(request):
     template_name='youtube/index.html'
     # fetch()
-    queryset=API.objects.all()
+    queryset=API.objects.all().order_by('-date_published')
 
     category_id = request.GET.get('category')
     search_query = request.GET.get('name')
@@ -105,11 +107,16 @@ def fetch(query="FamPay",max_results=2):
                     try:
                         API.objects.get(videoId=videoId)
                     except ObjectDoesNotExist:
-                        date=result['snippet']["publishedAt"]
+                        date_=result['snippet']["publishedAt"]
+                        publishedAt="2021-02-03T07:11:23Z"
+                        new_date, time_ = date_.split('T')
+                        dt_string = new_date + " " + time_[:-1]
+                        dt_object1 = datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S")
+
                         API.objects.create(
                             name=result['snippet']['title'],
                             description=result['snippet']['description'],
-                            # date_published=result['snippet']['title'],
+                            date_published=dt_object1,
                             thumbnail_url=result['snippet']['thumbnails']['high']['url'],
                             channel_name=result['snippet']['channelTitle'],
                             category=category,

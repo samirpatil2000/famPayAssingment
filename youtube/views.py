@@ -3,11 +3,12 @@ import json
 import os
 import sys
 
+import googleapiclient
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.shortcuts import render, redirect
-from famPayAssingment.settings import DEVELOPER_KEY,YOUTUBE_API_SERVICE_NAME,YOUTUBE_API_VERSION
+from famPayAssingment.settings import DEVELOPER_KEY,YOUTUBE_API_SERVICE_NAME,YOUTUBE_API_VERSION,API_KEYS
 
 # Create your views here.
 from googleapiclient.discovery import build
@@ -29,10 +30,14 @@ def index(request):
 
     which_query=[]
     if is_valid_params(search_query):
-        # queryset=queryset.filter(Q(name__icontains=search_query)|Q(category__name__icontains=search_query)|
-        #                          Q(description__icontains=search_query)).distinct()
-        queryset=queryset.filter(description__icontains=search_query)
-        which_query.append(search_query)
+        search_query=search_query.split(" ")
+        print(search_query)
+        if len(search_query)>0:
+            query=Q(name__icontains=search_query[0]) #|Q(description__icontains=search_query[0])
+            for q in search_query[1:]:
+                query =query | Q(name__contains=q) #| Q(description__icontains=q)
+            queryset=queryset.filter(query)
+            which_query.append(search_query)
     if is_valid_params(category_id):
         category_=Category.objects.get(id=int(category_id))
         print(category_)
@@ -60,49 +65,57 @@ def fetch_videos():
         fetch(query=cat.name)
 
 def fetch(query="FamPay",max_results=2):
-        query,max_results="FamPay",2
+    query,max_results="FamPay",2
+    retry=True
+    response=None
+    try:
+        for key in API_KEYS:
+            try:
+                # import pdb;pdb.set_trace()
+                request_to_youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,developerKey=key)
+                response = request_to_youtube.search().list(q=query,part='id,snippet',maxResults=max_results).execute()
+                print(response)
+                retry=False
 
-    # try:
-        try:
-            request_to_youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
-                            developerKey=DEVELOPER_KEY)
-            response = request_to_youtube.search().list(
-                q=query,
-                part='id,snippet',
-                maxResults=max_results
-            ).execute()
-            print(response)
-        except Exception as e:
-            print(e,"THE expection")
+            except googleapiclient.errors.HttpError as e:
+                # s=[{'message': 'The request cannot be completed because you have exceeded your <a href="/youtube/v3/getting-started#quota">quota</a>.',
+                #      'domain': 'youtube.quota', 'reason': 'quotaExceeded'}]
+                print(e,"THE expection")
+            if not retry:
+                break
 
-        title=[]
-        try:
-            category=Category.objects.get(name=query)
-        except ObjectDoesNotExist:
-            category=Category.objects.create(name=query)
-        response={'items':[]}
-        for result in response.get('items',[]):
-            if result['id']['kind'] == 'youtube#video':
-                title.append(result['snippet']['title'])
-                videoId=result['id']['videoId']
-                try:
-                    API.objects.get(videoId=videoId)
-                except ObjectDoesNotExist:
-                    date=result['snippet']["publishedAt"]
-                    API.objects.create(
-                        name=result['snippet']['title'],
-                        description=result['snippet']['description'],
-                        # date_published=result['snippet']['title'],
-                        thumbnail_url=result['snippet']['thumbnails']['high']['url'],
-                        channel_name=result['snippet']['channelTitle'],
-                        category=category,
-                        videoId=videoId)
-        print(title)
+        if response:
+            title=[]
+            try:
+                category=Category.objects.get(name=query)
+            except ObjectDoesNotExist:
+                category=Category.objects.create(name=query)
+            response={'items':[]}
+            for result in response.get('items',[]):
+                if result['id']['kind'] == 'youtube#video':
+                    title.append(result['snippet']['title'])
+                    videoId=result['id']['videoId']
+                    try:
+                        API.objects.get(videoId=videoId)
+                    except ObjectDoesNotExist:
+                        date=result['snippet']["publishedAt"]
+                        API.objects.create(
+                            name=result['snippet']['title'],
+                            description=result['snippet']['description'],
+                            # date_published=result['snippet']['title'],
+                            thumbnail_url=result['snippet']['thumbnails']['high']['url'],
+                            channel_name=result['snippet']['channelTitle'],
+                            category=category,
+                            videoId=videoId)
+            print(title)
+        else:
+            # messages.error(,"")
+            raise
 
-    # except Exception as e:
-    #     exc_type, exc_obj, exc_tb = sys.exc_info()
-    #     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    #     print(exc_type, fname, exc_tb.tb_lineno)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
 
     # return redirect('index')
 

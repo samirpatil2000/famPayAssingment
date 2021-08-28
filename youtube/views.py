@@ -22,12 +22,17 @@ def is_valid_params(param):
 def index(request):
     template_name='youtube/index.html'
     # fetch()
-    queryset=API.objects.all().order_by('-date_published')
+    queryset=API.objects.all()
 
     category_id = request.GET.get('category')
     search_query = request.GET.get('name')
+    checkbox = request.GET.get('checkbox')
+    print(checkbox)
       # creating a paginator object
-    # getting the desired page number from url
+    # getting the desired page number from
+
+    if checkbox=="on":
+        queryset=queryset.order_by('-date_published')
     page_number = request.GET.get('page')
 
     which_query=[]
@@ -47,6 +52,7 @@ def index(request):
 
     context={
         'filterForm':FilterForm,
+        'checkbox':"checked" if checkbox=="on" else ""
     }
     page = Paginator(queryset, 6)
     try:

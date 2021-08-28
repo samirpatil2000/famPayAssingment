@@ -27,6 +27,7 @@ def index(request):
     category_id = request.GET.get('category')
     search_query = request.GET.get('name')
     checkbox = request.GET.get('checkbox')
+    print(category_id)
     print(checkbox)
       # creating a paginator object
     # getting the desired page number from
@@ -43,8 +44,9 @@ def index(request):
             query=Q(name__icontains=search_query[0]) #|Q(description__icontains=search_query[0])
             for q in search_query[1:]:
                 query =query | Q(name__contains=q) #| Q(description__icontains=q)
+                which_query.append(q)
             queryset=queryset.filter(query)
-            which_query.append(search_query)
+
     if is_valid_params(category_id):
         category_=Category.objects.get(id=int(category_id))
         queryset = queryset.filter(category__name=category_)
@@ -52,7 +54,9 @@ def index(request):
 
     context={
         'filterForm':FilterForm,
-        'checkbox':"checked" if checkbox=="on" else ""
+        'categories':Category.objects.all(),
+        'checkbox':"checked" if checkbox=="on" else "",
+        'which_query':which_query
     }
     page = Paginator(queryset, 6)
     try:
@@ -82,9 +86,9 @@ def fetch_videos():
 
 def fetch(query="FamPay",max_results=2):
     # query,max_results="FamPay",2
-        retry=True
-        response=None
-    # try:
+    retry=True
+    response=None
+    try:
         for key in API_KEYS:
             try:
                 # import pdb;pdb.set_trace()
@@ -132,10 +136,10 @@ def fetch(query="FamPay",max_results=2):
             # messages.error(,"")
             raise
 
-    # except Exception as e:
-    #     exc_type, exc_obj, exc_tb = sys.exc_info()
-    #     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    #     print(exc_type, fname, exc_tb.tb_lineno)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
 
 
 

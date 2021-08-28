@@ -6,20 +6,44 @@
 {% block content %}
     <div class="container">
         <h1 style="margin-top:10px;alignment: center">YOUTUBE API</h1>
-        <form method="GET" action="." class="filter-form">
-                    {{filterForm|crispy}}
-                    <div class="form-check">
-                      <input class="form-check-input" name="checkbox" type="checkbox" value="on" id="flexCheckChecked" {{ checkbox }}>
-                      <label class="form-check-label" for="flexCheckChecked">
-                        Order by publish date
-                      </label>
+
+
+    <form method="GET" action="." class="filter-form">
+            <div id="div_id_category" class="form-group">
+                <label for="id_category" class="">Category</label>
+                <div class="">
+                    <select name="category" class="select form-control" id="id_category">
+                        <option value="" selected="">---------</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+                    <div id="div_id_name" class="form-group">
+                <label for="id_name" class=""></label>
+                    <div class="">
+                        <input type="text" name="name" maxlength="200" class="textinput textInput form-control" id="id_name" placeholder="search query">
                     </div>
-            <br>
+                    </div>
+                        <div class="form-check">
+                          <input class="form-check-input" name="checkbox" type="checkbox" value="on" id="flexCheckChecked" {{ checkbox }}>
+                          <label class="form-check-label" for="flexCheckChecked">
+                            Order by publish date
+                          </label>
+                        </div>
+                    <br>
                     <button class="btn btn-info btn-block btn-sm" type="submit">
                       Filter
                     </button>
         </form>
+        {% for q in  which_query %}
+            <div class="col-sm-1" style=" margin-top: 10px;margin-left: 10px">
+                <h4>{{ q }}</h4>
+            </div>
+        {% endfor %}
         <div class="row">
+
             {% for object in page_obj.object_list %}
                     <div class="col-sm-3" style=" margin-top: 10px;margin-left: 10px">
                         <div class="card" style="width: 18rem;">
@@ -59,3 +83,20 @@
         </center>
     </div>
 {% endblock %}
+
+
+{% comment %}
+ <form method="GET" action="." class="filter-form">
+                    {{filterForm|crispy}}
+                    <div class="form-check">
+                      <input class="form-check-input" name="checkbox" type="checkbox" value="on" id="flexCheckChecked" {{ checkbox }}>
+                      <label class="form-check-label" for="flexCheckChecked">
+                        Order by publish date
+                      </label>
+                    </div>
+                    <br>
+                    <button class="btn btn-info btn-block btn-sm" type="submit">
+                      Filter
+                    </button>
+        </form>
+{% endcomment %}

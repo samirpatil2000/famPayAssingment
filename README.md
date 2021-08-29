@@ -10,7 +10,13 @@
 [![Python Version](https://img.shields.io/badge/python-3.8-brightgreen.svg)](https://python.org)
 [![Django Version](https://img.shields.io/badge/django-3.2-brightgreen.svg)](https://djangoproject.com)
 
-
+## Features
+1. YouTube API continuously in the background (async) with 20 sec
+2. Store the data in the database (title,desc, thumbnail, publish date,) with its category 
+3. Advance searching and sorting with categories
+4. Pagination, DashBoard
+5. Works with multiple API keys 
+6. Dockerize the project.
 
 ## Running the Project Locally
 

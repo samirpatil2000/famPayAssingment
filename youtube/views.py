@@ -151,14 +151,18 @@ def detail(request,id):
 
 def dashboard(request):
     context = {
-        'objects':API.objects.all()
+        'objects':API.objects.all(),
     }
+    context['total_']=context['objects'].count()
     return render(request,'youtube/dashboard.html',context)
 
 
 def delete_API(request,id):
-    obj=API.objects.get(id=id)
-    obj.delete()
+    try:
+        obj=API.objects.get(id=id)
+        obj.delete()
+    except:
+        messages.warning(request,"Something went wrong")
     return redirect('dashboard')
 
 dummy_response={

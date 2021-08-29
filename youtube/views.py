@@ -161,6 +161,7 @@ def delete_API(request,id):
     try:
         obj=API.objects.get(id=id)
         obj.delete()
+        messages.success(request, "successfully fully deleted ")
     except:
         messages.warning(request,"Something went wrong")
     return redirect('dashboard')

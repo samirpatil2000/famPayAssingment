@@ -149,6 +149,18 @@ def detail(request,id):
     }
     return render(request,'youtube/detail.html',context)
 
+def dashboard(request):
+    context = {
+        'objects':API.objects.all()
+    }
+    return render(request,'youtube/dashboard.html',context)
+
+
+def delete_API(request,id):
+    obj=API.objects.get(id=id)
+    obj.delete()
+    return redirect('dashboard')
+
 dummy_response={
   "kind": "youtube#searchListResponse",
   "etag": "yFy6-Kk0uH8hf8Dna0lMSzIS0L0",

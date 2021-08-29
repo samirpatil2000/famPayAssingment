@@ -1,0 +1,22 @@
+{% extends 'youtube/base.html' %}
+
+{% block title %}FAMPAY{% endblock %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <div class="container">
+        <h1 style="margin-top:10px;alignment: center">YOUTUBE API-DASHBOARD</h1>
+        {% for obj in objects %}
+            <div class="card">
+              <div class="card-body">
+                  {{ forloop.counter }} .
+                {{ obj.name }}
+              </div>
+                <a href="{{ obj.get_delete_url }}" class="btn btn-outline-danger">Delete</a>
+            </div>
+            <br>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+
